@@ -1,8 +1,11 @@
 package com.ecommerce.user_service.controller;
 
+import com.ecommerce.user_service.dto.UserRequest;
+import com.ecommerce.user_service.dto.UserResponse;
 import com.ecommerce.user_service.entity.User;
 import com.ecommerce.user_service.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,35 +13,43 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/users")
+@RequestMapping("/api/users")
+@RequiredArgsConstructor
 public class UserController {
 
-    @Autowired
-    private UserService userService;
 
-    @GetMapping("/")
-    public ResponseEntity<List<User>> getUsers() {
+    private final UserService userService;
+
+    // GET /api/users - Get all users
+    @GetMapping
+    public ResponseEntity<List<UserResponse>> getUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
+    // GET /api/users/{id} - Get user by ID
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable int id) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Integer id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
-    @PostMapping("/")
-    public ResponseEntity<User> addUser(@RequestBody User user) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.addUser(user));
+    // POST /api/users - Add new user (only firstName, lastName, email required)
+    @PostMapping
+    public ResponseEntity<UserResponse> addUser(
+            @Valid @RequestBody UserRequest request) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(userService.addUser(request));
     }
 
+    // PUT /api/users/{id} - Update user (all fields optional, only firstName/lastName/email required)
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable int id, @RequestBody User user) {
-        User updatedUser = userService.updateUser(id, user);
-        return ResponseEntity.ok(updatedUser);
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Integer id, @Valid @RequestBody UserRequest user) {
+        return ResponseEntity.ok(userService.updateUser(id, user));
     }
 
+    // DELETE /api/users/{id} - Delete user by ID
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable int id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
